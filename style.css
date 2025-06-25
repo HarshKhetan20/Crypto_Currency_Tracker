@@ -372,3 +372,38 @@ a, button, .currency-btn, .chart-btn, .theme-toggle, .fav-btn, .remove-btn, .ref
 a:hover, button:hover, .currency-btn:hover, .chart-btn:hover, .fav-btn:hover, .remove-btn:hover, .refresh-btn:hover {
     filter: drop-shadow(0 0 8px var(--accent2));
 }
+
+/* Hamburger Navbar Styles (moved from index.html) */
+.nav-toggle {
+  display: none;
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.7rem;
+  padding: 4px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--container-bg);
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    min-width: 160px;
+    border-radius: 10px;
+    box-shadow: 0 4px 24px #6366f122;
+    z-index: 100;
+    padding: 10px 0;
+  }
+  .nav-links.open {
+    display: flex;
+  }
+  .nav-toggle {
+    display: block;
+  }
+}

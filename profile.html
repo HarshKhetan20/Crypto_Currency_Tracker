@@ -117,16 +117,16 @@
 </head>
 <body>
     <div class="bg-animated"></div>
-    <nav class="navbar">
+    <nav class="navbar" aria-label="Main navigation">
         <div class="logo3d" id="logo3d"></div>
-        <ul class="nav-links">
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+        <ul class="nav-links" id="navLinks">
             <li><a href="index.html">Home</a></li>
             <li><a href="discover.html">Discover</a></li>
             <li><a href="news.html">News</a></li>
             <li><a href="watchlist.html">Watchlist</a></li>
             <li><a href="profile.html" class="active">Profile</a></li>
         </ul>
-        <button id="themeToggle" class="theme-toggle">🌙</button>
     </nav>
     <div class="profile-container">
         <div class="profile-heading">Your Profile</div>
@@ -145,11 +145,6 @@
     </div>
     <script src="logo3d.js"></script>
     <script>
-    // Theme toggle
-    document.getElementById('themeToggle').onclick = function() {
-        document.body.classList.toggle('light-mode');
-        this.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
-    };
     // Auth check
     auth.onAuthStateChanged(async function(user) {
         if (!user) {
@@ -186,6 +181,11 @@
     document.getElementById('logoutBtn').onclick = async function() {
         await auth.signOut();
         window.location.href = 'login.html';
+    };
+    document.getElementById('navToggle').onclick = function() {
+      const navLinks = document.getElementById('navLinks');
+      const expanded = navLinks.classList.toggle('open');
+      this.setAttribute('aria-expanded', expanded);
     };
     </script>
 </body>
