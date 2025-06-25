@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Crypto Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='%23F7931A'/%3E%3Ctext x='50%' y='54%' text-anchor='middle' font-size='38' font-family='Segoe UI, Arial, sans-serif' font-weight='bold' fill='white' dy='.3em'%3E%E2%82%BF%3C/text%3E%3C/svg%3E"/>
+    <style>
+        .profile-container {
+            max-width: 420px;
+            margin: 60px auto 0 auto;
+            background: var(--container-bg);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px #6366f122;
+            padding: 32px 24px 24px 24px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .profile-heading {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+            background-size: 200% 200%;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-move 3s ease-in-out infinite alternate;
+            margin-bottom: 12px;
+        }
+        .profile-photo {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 10px auto;
+            box-shadow: 0 2px 12px var(--accent2);
+            display: block;
+        }
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .profile-label {
+            color: var(--accent2);
+            font-size: 0.98rem;
+            font-weight: bold;
+        }
+        .profile-value {
+            color: var(--text);
+            font-size: 1.05rem;
+            word-break: break-all;
+        }
+        .profile-edit {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .profile-edit input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 1rem;
+        }
+        .profile-edit button {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .profile-edit button:hover {
+            background: var(--accent2);
+            color: var(--text);
+        }
+        .logout-btn {
+            margin: 18px auto 0 auto;
+            display: block;
+            padding: 10px 32px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: var(--price-down);
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+        .profile-msg {
+            text-align: center;
+            margin-top: 8px;
+            color: var(--accent2);
+        }
+        @media (max-width: 600px) {
+            .profile-container { padding: 12px 2vw; }
+            .profile-heading { font-size: 1.2rem; }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <nav class="navbar">
+        <div class="logo3d" id="logo3d"></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="discover.html">Discover</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="watchlist.html">Watchlist</a></li>
+            <li><a href="profile.html" class="active">Profile</a></li>
+        </ul>
+        <button id="themeToggle" class="theme-toggle">🌙</button>
+    </nav>
+    <div class="profile-container">
+        <div class="profile-heading">Your Profile</div>
+        <img id="profilePhoto" class="profile-photo" src="" alt="Profile Photo" style="display:none;">
+        <div class="profile-info">
+            <div><span class="profile-label">Email:</span> <span class="profile-value" id="profileEmail"></span></div>
+            <div><span class="profile-label">UID:</span> <span class="profile-value" id="profileUID"></span></div>
+            <div><span class="profile-label">Created:</span> <span class="profile-value" id="profileCreated"></span></div>
+            <div class="profile-edit">
+                <input type="text" id="displayNameInput" placeholder="Display Name">
+                <button id="saveDisplayName">Save</button>
+            </div>
+        </div>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+        <div class="profile-msg" id="profileMsg"></div>
+    </div>
+    <script src="logo3d.js"></script>
+    <script>
+    // Theme toggle
+    document.getElementById('themeToggle').onclick = function() {
+        document.body.classList.toggle('light-mode');
+        this.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+    };
+    // Auth check
+    auth.onAuthStateChanged(async function(user) {
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+        // Show user info
+        document.getElementById('profileEmail').textContent = user.email;
+        document.getElementById('profileUID').textContent = user.uid;
+        document.getElementById('displayNameInput').value = user.displayName || '';
+        if (user.photoURL) {
+            const photo = document.getElementById('profilePhoto');
+            photo.src = user.photoURL;
+            photo.style.display = 'block';
+        }
+        // Get creation date from Firestore or Auth metadata
+        let created = user.metadata && user.metadata.creationTime ? user.metadata.creationTime : '';
+        document.getElementById('profileCreated').textContent = created;
+    });
+    // Save display name
+    document.getElementById('saveDisplayName').onclick = async function() {
+        const name = document.getElementById('displayNameInput').value.trim();
+        if (!name) return;
+        document.getElementById('profileMsg').textContent = 'Saving...';
+        try {
+            await auth.currentUser.updateProfile({ displayName: name });
+            await db.collection('users').doc(auth.currentUser.uid).set({ displayName: name }, { merge: true });
+            document.getElementById('profileMsg').textContent = 'Display name updated!';
+        } catch (err) {
+            document.getElementById('profileMsg').textContent = err.message;
+        }
+    };
+    // Logout
+    document.getElementById('logoutBtn').onclick = async function() {
+        await auth.signOut();
+        window.location.href = 'login.html';
+    };
+    </script>
+</body>
+</html> 

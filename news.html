@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto News - Crypto Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='%23F7931A'/%3E%3Ctext x='50%' y='54%' text-anchor='middle' font-size='38' font-family='Segoe UI, Arial, sans-serif' font-weight='bold' fill='white' dy='.3em'%3E%E2%82%BF%3C/text%3E%3C/svg%3E"/>
+    <style>
+        .news-container {
+            max-width: 900px;
+            margin: 40px auto 0 auto;
+            background: rgba(35,25,66,0.85);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px #00F0FF22;
+            padding: 32px 18px 24px 18px;
+            position: relative;
+            z-index: 1;
+        }
+        .news-heading {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 2.1rem;
+            color: var(--accent2);
+            font-weight: bold;
+            margin-bottom: 28px;
+            letter-spacing: 1px;
+            justify-content: center;
+        }
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 0;
+            margin: 0;
+        }
+        .news-card {
+            background: rgba(24,18,43,0.95);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #00F0FF11;
+            padding: 18px 20px 14px 20px;
+            transition: box-shadow 0.2s, background 0.2s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-left: 4px solid var(--accent2);
+        }
+        .news-card:hover {
+            box-shadow: 0 4px 24px #00F0FF44;
+            background: rgba(35,25,66,0.98);
+            transform: translateY(-2px) scale(1.01);
+        }
+        .news-title {
+            font-size: 1.15rem;
+            color: var(--accent2);
+            font-weight: bold;
+            margin: 0 0 2px 0;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .news-title:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        .news-meta {
+            font-size: 0.98rem;
+            color: #aaa;
+            margin-top: 2px;
+        }
+        @media (max-width: 600px) {
+            .news-container { padding: 10px 2vw; }
+            .news-heading { font-size: 1.2rem; gap: 8px; }
+            .news-card { padding: 10px 8px; }
+        }
+        .refresh-btn {
+            display: block;
+            margin: 0 auto 18px auto;
+            background: var(--accent2);
+            color: var(--container-bg);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 22px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #00F0FF33;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+        .refresh-btn:hover {
+            background: var(--accent);
+            color: var(--text);
+            box-shadow: 0 4px 16px #00F0FF66;
+            transform: scale(1.04);
+        }
+        .refresh-btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <nav class="navbar">
+        <div class="logo3d" id="logo3d">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="btcGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#F7931A" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#232946" stop-opacity="0.2"/>
+              </radialGradient>
+              <filter id="btcNeon" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F7931A"/>
+                <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#ffe082"/>
+              </filter>
+            </defs>
+            <circle cx="40" cy="40" r="36" fill="url(#btcGlow)" filter="url(#btcNeon)"/>
+            <text x="50%" y="54%" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="bold" fill="#fff" filter="url(#btcNeon)" dy=".3em">₿</text>
+          </svg>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="discover.html">Discover</a></li>
+            <li><a href="news.html" class="active">News</a></li>
+            <li><a href="watchlist.html">Watchlist</a></li>
+            <li><a href="profile.html">Profile</a></li>
+        </ul>
+        <button id="themeToggle" class="theme-toggle">🌙</button>
+    </nav>
+    <div class="news-container">
+        <div class="news-heading">
+            <span style="font-size:2.2rem;">📰</span> Latest <span style="color:var(--accent);">Crypto News</span>
+        </div>
+        <button id="refreshNews" class="refresh-btn" title="Refresh News">🔄 Refresh</button>
+        <ul id="newsList" class="news-list">
+            <li>Loading news...</li>
+        </ul>
+    </div>
+    <script src="logo3d.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Theme toggle logic
+        document.getElementById('themeToggle').onclick = function() {
+            document.body.classList.toggle('light-mode');
+            this.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        };
+        // 3D logo
+        if (window.logoDiv === undefined) {
+            window.logoDiv = document.getElementById('logo3d');
+            window.logoDiv.innerHTML = `<svg width="54" height="54" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00F0FF" stop-opacity="1"/><stop offset="100%" stop-color="#9F5FFF" stop-opacity="0.2"/></radialGradient><filter id="neon" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#00F0FF"/><feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#9F5FFF"/></filter></defs><circle cx="27" cy="27" r="24" fill="url(#glow)" filter="url(#neon)"/><path d="M27 12L37 27H17L27 12Z" fill="#00F0FF" filter="url(#neon)"/><rect x="22" y="27" width="10" height="12" rx="3" fill="#9F5FFF" filter="url(#neon)"/><ellipse cx="27" cy="39" rx="5" ry="2.5" fill="#00F0FF" filter="url(#neon)"/></svg>`;
+        }
+        // News fetch
+        const NEWS_API_URL = "https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss/search?q=cryptocurrency";
+        async function fetchNews() {
+            const newsList = document.getElementById('newsList');
+            const refreshBtn = document.getElementById('refreshNews');
+            if (refreshBtn) refreshBtn.classList.add('loading');
+            newsList.innerHTML = '<li>Loading news...</li>';
+            try {
+                const res = await fetch(NEWS_API_URL);
+                const data = await res.json();
+                newsList.innerHTML = '';
+                if (data.items && data.items.length > 0) {
+                    data.items.slice(0, 12).forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'news-card';
+                        li.innerHTML = `
+                            <a class="news-title" href="${item.link}" target="_blank">${item.title}</a>
+                            <div class="news-meta">${item.pubDate ? new Date(item.pubDate).toLocaleString() : ''}</div>
+                        `;
+                        newsList.appendChild(li);
+                    });
+                } else {
+                    newsList.innerHTML = '<li class="news-card">No news found. (API returned no items)</li>';
+                }
+            } catch (err) {
+                newsList.innerHTML = '<li class="news-card">Failed to load news. (Network or API error)</li>';
+                console.error('News fetch error:', err);
+            }
+            if (refreshBtn) refreshBtn.classList.remove('loading');
+        }
+        fetchNews();
+        // Refresh button logic
+        document.getElementById('refreshNews').onclick = function() {
+            fetchNews();
+        };
+    });
+    </script>
+</body>
+</html> 

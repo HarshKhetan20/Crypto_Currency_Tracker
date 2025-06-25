@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchlist - Crypto Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='%23F7931A'/%3E%3Ctext x='50%' y='54%' text-anchor='middle' font-size='38' font-family='Segoe UI, Arial, sans-serif' font-weight='bold' fill='white' dy='.3em'%3E%E2%82%BF%3C/text%3E%3C/svg%3E"/>
+    <style>
+        .watchlist-container {
+            max-width: 1100px;
+            margin: 40px auto 0 auto;
+            background: rgba(35,25,66,0.85);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px #00F0FF22;
+            padding: 32px 18px 24px 18px;
+            position: relative;
+            z-index: 1;
+        }
+        .watchlist-heading {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 2.1rem;
+            color: var(--accent2);
+            font-weight: bold;
+            margin-bottom: 28px;
+            letter-spacing: 1px;
+            justify-content: center;
+        }
+        .crypto-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+        .crypto-card {
+            background: rgba(24,18,43,0.95);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #00F0FF11;
+            padding: 18px 20px 14px 20px;
+            transition: box-shadow 0.2s, background 0.2s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 180px;
+            max-width: 220px;
+            gap: 8px;
+            border-left: 4px solid var(--accent2);
+            position: relative;
+        }
+        .crypto-card:hover {
+            box-shadow: 0 4px 24px #00F0FF44;
+            background: rgba(35,25,66,0.98);
+            transform: translateY(-2px) scale(1.03);
+        }
+        .crypto-img {
+            width: 40px; height: 40px; border-radius: 50%; background: #222; box-shadow: 0 0 8px #00F0FF44;
+        }
+        .crypto-name {
+            font-size: 1.1rem;
+            color: var(--accent2);
+            font-weight: bold;
+            margin: 0;
+            text-align: center;
+        }
+        .crypto-symbol {
+            color: var(--accent);
+            font-size: 0.98rem;
+            margin-bottom: 2px;
+        }
+        .crypto-price {
+            color: #fff;
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .crypto-change {
+            font-size: 0.98rem;
+            font-weight: bold;
+        }
+        .crypto-change.up { color: var(--price-up); }
+        .crypto-change.down { color: var(--price-down); }
+        .remove-btn {
+            position: absolute;
+            top: 8px; right: 10px;
+            background: none;
+            border: none;
+            color: #FFD700;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+        .remove-btn:hover {
+            color: #FF3B6A;
+            text-shadow: 0 0 8px #FF3B6A, 0 0 16px #9F5FFF;
+        }
+        @media (max-width: 700px) {
+            .crypto-list { flex-direction: column; align-items: center; }
+            .crypto-card { min-width: 90vw; max-width: 98vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <nav class="navbar">
+        <div class="logo3d" id="logo3d">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="btcGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#F7931A" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#232946" stop-opacity="0.2"/>
+              </radialGradient>
+              <filter id="btcNeon" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F7931A"/>
+                <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#ffe082"/>
+              </filter>
+            </defs>
+            <circle cx="40" cy="40" r="36" fill="url(#btcGlow)" filter="url(#btcNeon)"/>
+            <text x="50%" y="54%" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="bold" fill="#fff" filter="url(#btcNeon)" dy=".3em">₿</text>
+          </svg>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="discover.html">Discover</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="watchlist.html" class="active">Watchlist</a></li>
+            <li><a href="profile.html">Profile</a></li>
+        </ul>
+    </nav>
+    <div class="watchlist-container">
+        <div class="watchlist-heading">
+            <span style="font-size:2.2rem;">⭐</span> Your <span style="color:var(--accent);">Watchlist</span>
+        </div>
+        <div id="watchlistList" class="crypto-list"><div>Loading...</div></div>
+    </div>
+    <script src="logo3d.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 3D logo
+        if (window.logoDiv === undefined) {
+            window.logoDiv = document.getElementById('logo3d');
+            window.logoDiv.innerHTML = `<svg width="54" height="54" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00F0FF" stop-opacity="1"/><stop offset="100%" stop-color="#9F5FFF" stop-opacity="0.2"/></radialGradient><filter id="neon" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#00F0FF"/><feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#9F5FFF"/></filter></defs><circle cx="27" cy="27" r="24" fill="url(#glow)" filter="url(#neon)"/><path d="M27 12L37 27H17L27 12Z" fill="#00F0FF" filter="url(#neon)"/><rect x="22" y="27" width="10" height="12" rx="3" fill="#9F5FFF" filter="url(#neon)"/><ellipse cx="27" cy="39" rx="5" ry="2.5" fill="#00F0FF" filter="url(#neon)"/></svg>`;
+        }
+        // Watchlist logic
+        function getFavorites() {
+            return JSON.parse(localStorage.getItem('favorites') || '[]');
+        }
+        function setFavorites(favs) {
+            localStorage.setItem('favorites', JSON.stringify(favs));
+        }
+        function removeFavorite(coinId) {
+            let favs = getFavorites();
+            favs = favs.filter(id => id !== coinId);
+            setFavorites(favs);
+            renderWatchlist();
+        }
+        async function renderWatchlist() {
+            const list = document.getElementById('watchlistList');
+            const favs = getFavorites();
+            if (!favs.length) {
+                list.innerHTML = '<div class="crypto-card">No coins in your watchlist yet.<br>Add some from the main page!</div>';
+                return;
+            }
+            list.innerHTML = '<div>Loading...</div>';
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=' + favs.join(',') + '&order=market_cap_desc&per_page=50&page=1&sparkline=false');
+                if (!res.ok) throw new Error('Failed to fetch watchlist coins');
+                const data = await res.json();
+                list.innerHTML = '';
+                data.forEach(coin => {
+                    const div = document.createElement('div');
+                    div.className = 'crypto-card';
+                    div.innerHTML = `
+                        <button class="remove-btn" title="Remove from Watchlist">&#10006;</button>
+                        <img class="crypto-img" src="${coin.image}" alt="${coin.name}">
+                        <div class="crypto-name">${coin.name}</div>
+                        <div class="crypto-symbol">${coin.symbol.toUpperCase()}</div>
+                        <div class="crypto-price">$${coin.current_price.toLocaleString()}</div>
+                        <div class="crypto-change ${coin.price_change_percentage_24h >= 0 ? 'up' : 'down'}">
+                            ${coin.price_change_percentage_24h >= 0 ? '+' : ''}${coin.price_change_percentage_24h?.toFixed(2) ?? '--'}%
+                        </div>
+                    `;
+                    div.querySelector('.remove-btn').onclick = () => removeFavorite(coin.id);
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = '<div class="crypto-card">Failed to load your watchlist.</div>';
+            }
+        }
+        renderWatchlist();
+    });
+    </script>
+</body>
+</html> 

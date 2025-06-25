@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Crypto Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='%23F7931A'/%3E%3Ctext x='50%' y='54%' text-anchor='middle' font-size='38' font-family='Segoe UI, Arial, sans-serif' font-weight='bold' fill='white' dy='.3em'%3E%E2%82%BF%3C/text%3E%3C/svg%3E"/>
+    <script src="logo3d.js"></script>
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 60px auto 0 auto;
+            background: var(--container-bg);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px #6366f122;
+            padding: 32px 24px 24px 24px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .auth-heading {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+            background-size: 200% 200%;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-move 3s ease-in-out infinite alternate;
+            margin-bottom: 12px;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .auth-form input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 1rem;
+        }
+        .auth-form input:focus {
+            border-color: var(--accent2);
+            outline: none;
+        }
+        .auth-btn, .social-btn {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            margin-top: 6px;
+        }
+        .auth-btn:hover, .social-btn:hover {
+            background: var(--accent2);
+            color: var(--text);
+        }
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--accent2);
+            color: var(--container-bg);
+        }
+        .social-btn.google { background: #fff; color: #232946; border: 1.5px solid #eee; }
+        .social-btn.google:hover { background: #e0e7ef; }
+        .social-btn.github { background: #232946; color: #fff; border: 1.5px solid #232946; }
+        .social-btn.github:hover { background: #181c2b; }
+        .auth-link { text-align: center; margin-top: 10px; }
+        .auth-link a { color: var(--accent2); text-decoration: none; font-weight: bold; }
+        .auth-link a:hover { text-decoration: underline; }
+        .auth-error { color: var(--price-down); text-align: center; margin-top: 6px; }
+        .auth-success { color: var(--price-up); text-align: center; margin-top: 6px; }
+        .auth-loading { text-align: center; color: var(--accent2); margin-top: 6px; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <div class="auth-container">
+        <div class="auth-heading">Sign Up</div>
+        <form class="auth-form" id="signupForm">
+            <input type="email" id="email" placeholder="Email" required autocomplete="username">
+            <input type="password" id="password" placeholder="Password" required autocomplete="new-password">
+            <button type="submit" class="auth-btn">Sign Up</button>
+        </form>
+        <button class="social-btn google" id="googleSignup"><img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20"> Sign up with Google</button>
+        <div class="auth-link">Already have an account? <a href="login.html">Login</a></div>
+        <div id="authMsg"></div>
+    </div>
+    <script>
+    const authMsg = document.getElementById('authMsg');
+    function showMsg(msg, type) {
+        authMsg.className = type ? 'auth-' + type : '';
+        authMsg.textContent = msg;
+    }
+    document.getElementById('signupForm').onsubmit = async function(e) {
+        e.preventDefault();
+        showMsg('Signing up...', 'loading');
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        try {
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+            // Store user info in Firestore
+            await db.collection('users').doc(cred.user.uid).set({
+                email: cred.user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showMsg('Signup successful!', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        } catch (err) {
+            showMsg(err.message, 'error');
+        }
+    };
+    document.getElementById('googleSignup').onclick = async function() {
+        showMsg('Signing up with Google...', 'loading');
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            const cred = await auth.signInWithPopup(provider);
+            // Store user info in Firestore
+            await db.collection('users').doc(cred.user.uid).set({
+                email: cred.user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            showMsg('Signup successful!', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        } catch (err) {
+            showMsg(err.message, 'error');
+        }
+    };
+    document.getElementById('githubSignup').onclick = async function() {
+        showMsg('Signing up with GitHub...', 'loading');
+        const provider = new firebase.auth.GithubAuthProvider();
+        try {
+            const cred = await auth.signInWithPopup(provider);
+            // Store user info in Firestore
+            await db.collection('users').doc(cred.user.uid).set({
+                email: cred.user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            showMsg('Signup successful!', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        } catch (err) {
+            showMsg(err.message, 'error');
+        }
+    };
+    </script>
+</body>
+</html> 

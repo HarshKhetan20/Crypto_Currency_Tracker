@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Crypto Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='%23F7931A'/%3E%3Ctext x='50%' y='54%' text-anchor='middle' font-size='38' font-family='Segoe UI, Arial, sans-serif' font-weight='bold' fill='white' dy='.3em'%3E%E2%82%BF%3C/text%3E%3C/svg%3E"/>
+    <script src="logo3d.js"></script>
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 60px auto 0 auto;
+            background: var(--container-bg);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px #6366f122;
+            padding: 32px 24px 24px 24px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .auth-heading {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-move 3s ease-in-out infinite alternate;
+            margin-bottom: 12px;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .auth-form input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 1rem;
+        }
+        .auth-form input:focus {
+            border-color: var(--accent2);
+            outline: none;
+        }
+        .auth-btn, .social-btn {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            margin-top: 6px;
+        }
+        .auth-btn:hover, .social-btn:hover {
+            background: var(--accent2);
+            color: var(--text);
+        }
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--accent2);
+            color: var(--container-bg);
+        }
+        .social-btn.google { background: #fff; color: #232946; border: 1.5px solid #eee; }
+        .social-btn.google:hover { background: #e0e7ef; }
+        .social-btn.github { background: #232946; color: #fff; border: 1.5px solid #232946; }
+        .social-btn.github:hover { background: #181c2b; }
+        .auth-link { text-align: center; margin-top: 10px; }
+        .auth-link a { color: var(--accent2); text-decoration: none; font-weight: bold; }
+        .auth-link a:hover { text-decoration: underline; }
+        .auth-error { color: var(--price-down); text-align: center; margin-top: 6px; }
+        .auth-success { color: var(--price-up); text-align: center; margin-top: 6px; }
+        .auth-loading { text-align: center; color: var(--accent2); margin-top: 6px; }
+        .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <div class="auth-container">
+        <div class="auth-heading">Sign In</div>
+        <form class="auth-form" id="loginForm">
+            <label for="email" class="visually-hidden">Email</label>
+            <input type="email" id="email" placeholder="Email" required autocomplete="username">
+            <label for="password" class="visually-hidden">Password</label>
+            <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+            <button type="submit" class="auth-btn">Login</button>
+        </form>
+        <button class="social-btn google" id="googleLogin"><img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20"> Sign in with Google</button>
+        <div class="auth-link">Don't have an account? <a href="signup.html">Sign up</a></div>
+        <div class="auth-link"><a href="#" id="forgotPasswordLink">Forgot password?</a></div>
+        <div id="authMsg" role="alert"></div>
+        <!-- Password Reset Modal -->
+        <div id="resetModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+            <div style="background:var(--container-bg);backdrop-filter:var(--glass-blur);border-radius:12px;padding:24px 18px;max-width:340px;margin:auto;box-shadow:0 4px 24px #6366f122;">
+                <h2 style="margin-top:0;font-size:1.2rem;color:var(--accent2);">Reset Password</h2>
+                <form id="resetForm">
+                    <label for="resetEmail" class="visually-hidden">Email</label>
+                    <input type="email" id="resetEmail" placeholder="Enter your email" required style="width:100%;margin-bottom:12px;">
+                    <button type="submit" class="auth-btn" style="width:100%;">Send Reset Email</button>
+                </form>
+                <div id="resetMsg" role="alert" style="margin-top:8px;"></div>
+                <button id="closeResetModal" class="auth-btn" style="background:var(--price-down);margin-top:10px;width:100%;">Close</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    const authMsg = document.getElementById('authMsg');
+    function showMsg(msg, type) {
+        authMsg.className = type ? 'auth-' + type : '';
+        authMsg.textContent = msg;
+    }
+    document.getElementById('loginForm').onsubmit = async function(e) {
+        e.preventDefault();
+        showMsg('Logging in...', 'loading');
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            showMsg('Login successful!', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        } catch (err) {
+            showMsg(err.message, 'error');
+        }
+    };
+    document.getElementById('googleLogin').onclick = async function() {
+        showMsg('Signing in with Google...', 'loading');
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            await auth.signInWithPopup(provider);
+            showMsg('Login successful!', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        } catch (err) {
+            showMsg(err.message, 'error');
+        }
+    };
+    document.getElementById('githubLogin').onclick = async function() {
+        showMsg('Signing in with GitHub...', 'loading');
+        const provider = new firebase.auth.GithubAuthProvider();
+        try {
+            await auth.signInWithPopup(provider);
+            showMsg('Login successful!', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        } catch (err) {
+            showMsg(err.message, 'error');
+        }
+    };
+    document.getElementById('forgotPasswordLink').onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('resetModal').style.display = 'flex';
+        document.getElementById('resetMsg').textContent = '';
+        document.getElementById('resetEmail').value = '';
+    };
+    document.getElementById('closeResetModal').onclick = function() {
+        document.getElementById('resetModal').style.display = 'none';
+    };
+    document.getElementById('resetForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('resetEmail').value;
+        document.getElementById('resetMsg').textContent = 'Sending...';
+        try {
+            await auth.sendPasswordResetEmail(email);
+            document.getElementById('resetMsg').textContent = 'Password reset email sent! Check your inbox.';
+        } catch (err) {
+            document.getElementById('resetMsg').textContent = err.message;
+        }
+    };
+    // Cursor trail effect
+    (function() {
+        const trail = document.createElement('div');
+        trail.className = 'cursor-trail';
+        document.body.appendChild(trail);
+        document.addEventListener('mousemove', e => {
+            trail.style.transform = `translate(${e.clientX - 9}px, ${e.clientY - 9}px)`;
+            trail.style.opacity = 0.18;
+            clearTimeout(trail._fade);
+            trail._fade = setTimeout(() => { trail.style.opacity = 0.08; }, 120);
+        });
+    })();
+    </script>
+</body>
+</html> 
